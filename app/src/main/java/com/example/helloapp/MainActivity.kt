@@ -12,16 +12,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -32,11 +33,25 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
+        }
+
         setContent {
             HelloAppTheme {
+                val systemStart = MaterialTheme.colorScheme.surfaceDim
+                val systemEnd = MaterialTheme.colorScheme.secondaryContainer
+
+
                 Scaffold(
                     modifier = Modifier
-                        .background(brush = Brush.verticalGradient(listOf(Color.Red, Color.Blue)))
+                        .background(
+                            brush = Brush.linearGradient(
+                                colors = listOf(systemStart, systemEnd,  systemStart,  systemStart),
+                                start = Offset(500f, 200f),
+                                end = Offset.Infinite
+                            )
+                        )
                         .fillMaxSize(),
                     containerColor = Color.Transparent ) { innerPadding ->
                     val scrollState = rememberScrollState()
@@ -50,19 +65,20 @@ class MainActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         repeat(20) {
-                            val count = remember{mutableStateOf(0)}
+                            val count = rememberSaveable{mutableStateOf(0)}
                             Card(
                                 modifier = Modifier
                                     .padding(10.dp)
                                     .fillMaxWidth(0.85f)
                                     .clickable( onClick = { count.value += 1 }),
-                                shape = RoundedCornerShape(8.dp),
+                                shape = MaterialTheme.shapes.medium,
                                 colors =  CardDefaults.cardColors(
-                                    containerColor = Color.White
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainer
                                 ),
                                 elevation = CardDefaults.cardElevation(
-                                    defaultElevation = 4.dp
-                                )
+                                    defaultElevation = 2.dp
+                                ),
+                                onClick = { count.value += 1 },
                             ) {
 
 
@@ -70,7 +86,7 @@ class MainActivity : ComponentActivity() {
                                     "Clicks: ${count.value}",
                                     fontSize = 20.sp,
                                     modifier = Modifier
-                                        .padding(15.dp)
+                                        .padding(16.dp)
                                         .align(Alignment.CenterHorizontally)
 
                                 )
