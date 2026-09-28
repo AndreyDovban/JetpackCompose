@@ -4,22 +4,29 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -42,58 +49,83 @@ class MainActivity : ComponentActivity() {
                 val systemStart = MaterialTheme.colorScheme.surfaceDim
                 val systemEnd = MaterialTheme.colorScheme.secondaryContainer
 
-
-                Scaffold(
+                Surface(
                     modifier = Modifier
                         .background(
                             brush = Brush.linearGradient(
-                                colors = listOf(systemStart, systemEnd,  systemStart,  systemStart),
+                                colors = listOf(systemStart, systemEnd, systemStart, systemStart),
                                 start = Offset(500f, 200f),
                                 end = Offset.Infinite
                             )
                         )
                         .fillMaxSize(),
-                    containerColor = Color.Transparent ) { innerPadding ->
-                    val scrollState = rememberScrollState()
-
-                    Column(
-                        modifier = Modifier
-                            .padding(innerPadding)
-                            .fillMaxSize()
-                            .verticalScroll(scrollState),
-                        verticalArrangement = Arrangement.Top,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        repeat(20) {
-                            val count = rememberSaveable{mutableStateOf(0)}
-                            Card(
-                                modifier = Modifier
-                                    .padding(10.dp)
-                                    .fillMaxWidth(0.85f)
-                                    .clickable( onClick = { count.value += 1 }),
-                                shape = MaterialTheme.shapes.medium,
-                                colors =  CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                                ),
-                                elevation = CardDefaults.cardElevation(
-                                    defaultElevation = 2.dp
-                                ),
-                                onClick = { count.value += 1 },
-                            ) {
+                    color = Color.Transparent // Делаем сам цвет прозрачным, чтобы был виден модификатор градиента
+                ) {
+                    Scaffold(
+                        containerColor = Color.Transparent
+                    ) { innerPadding ->
+                        val counts = rememberSaveable(saver = listSaver(
+                            save = { it.toList() },
+                            restore = { it.toMutableStateList() }
+                        )) {
+                            mutableStateListOf(*Array(200) { 0 })
+                        }
 
 
-                                Text(
-                                    "Clicks: ${count.value}",
-                                    fontSize = 20.sp,
+                        LazyColumn(
+                            modifier = Modifier
+                                .padding(innerPadding)
+                                .fillMaxSize(),
+                            verticalArrangement = Arrangement.Top,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            items(count = 200, key = { index -> "card_$index" }) {index ->
+                                Card(
                                     modifier = Modifier
-                                        .padding(16.dp)
-                                        .align(Alignment.CenterHorizontally)
+                                        .padding(10.dp)
+                                        .fillMaxWidth(0.85f),
+                                    shape = MaterialTheme.shapes.medium,
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                    ),
+                                    elevation = CardDefaults.cardElevation(
+                                        defaultElevation = 2.dp
+                                    ),
+                                    onClick = { counts[index] += 1 },
+                                ) {
 
-                                )
+                                    Row(
+                                        modifier = Modifier
+                                            .padding(16.dp)
+                                            .align(Alignment.CenterHorizontally),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ){
+                                        Text(
+                                            text = "Clicks: $index: ",
+                                            fontSize = 20.sp
+                                        )
+
+                                        AnimatedContent(
+                                            targetState = counts[index],
+                                            transitionSpec = {
+                                                // Настраиваем анимацию: старый уезжает вверх, новый приезжает снизу
+                                                (slideInVertically { height -> -height } + fadeIn()) togetherWith
+                                                        slideOutVertically { height -> height } + fadeOut()
+                                            },
+                                            label = "CounterAnimation"
+                                        ) { animatedCount ->
+                                            // Внутри лямбды обязательно используем именно аргумент анимированного состояния (animatedCount)
+                                            Text(
+                                                text = "$animatedCount",
+                                                fontSize = 20.sp
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
-                    }
 
+                    }
                 }
             }
         }
