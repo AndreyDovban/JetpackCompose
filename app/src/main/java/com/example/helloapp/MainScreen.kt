@@ -52,14 +52,25 @@ fun MainScreen() {
         ) {
             item {
                 Card(
-                    content = { Text(text = "Вниз", fontSize = 20.sp, fontWeight = FontWeight.W400)},
-                    onClick = {coroutineScope.launch{listState.animateScrollToItem(index = 199)}}
+                    content = {
+                        Text(
+                            text = "Вниз",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.W400)},
+                    onClick = {coroutineScope.launch{
+                        listState.scrollToItem(index = 199)
+                    }
+                    }
                 )
             }
             items(count = 200, key = { index -> "card_$index" }) {index ->
                 Card(
                     content = {
-                        Text(text = "Clicks: $index: ", fontSize = 20.sp, fontWeight = FontWeight.W400 )
+                        Text(
+                            text = "Clicks: $index: ",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.W400,
+                        )
                         AnimatedContent(
                             targetState = counts[index],
                             transitionSpec = {
@@ -68,20 +79,27 @@ fun MainScreen() {
                             },
                             label = "CounterAnimation"
                         ) { animatedCount ->
-                            // Внутри лямбды обязательно используем именно аргумент анимированного состояния (animatedCount)
                             Text(
-                                text = "$animatedCount", fontSize = 20.sp, fontWeight = FontWeight.W400
+                                text = "$animatedCount",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.W500,
                             )
                         }
-                              },
+                    },
                     onClick = {counts[index] += 1}
                 )
 
             }
             item {
                 Card(
-                    content = { Text(text = "Вверх",fontSize = 20.sp, fontWeight = FontWeight.W500)},
-                    onClick = {coroutineScope.launch{listState.animateScrollToItem(index = 0)}}
+                    content = {
+                        Text(
+                            text = "Вверх",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.W500
+                        )
+                    },
+                    onClick = {coroutineScope.launch{listState.scrollToItem(index = 0)}}
                 )
             }
         }
@@ -89,73 +107,3 @@ fun MainScreen() {
     }
 }
 
-/*
-
-                Card(
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .fillMaxWidth(0.85f),
-                    shape = MaterialTheme.shapes.medium,
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainer
-                    ),
-                    elevation = CardDefaults.cardElevation(
-                        defaultElevation = 2.dp
-                    ),
-                    onClick = { counts[index] += 1 },
-                ) {
-
-                    Row(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .align(Alignment.CenterHorizontally),
-                        verticalAlignment = Alignment.CenterVertically
-                    ){
-                        Text(
-                            text = "Clicks: $index: ",
-                            fontSize = 20.sp,
-                        )
-
-                        AnimatedContent(
-                            targetState = counts[index],
-                            transitionSpec = {
-                                // Настраиваем анимацию: старый уезжает вверх, новый приезжает снизу
-                                (slideInVertically { height -> -height } + fadeIn()) togetherWith
-                                        slideOutVertically { height -> height } + fadeOut()
-                            },
-                            label = "CounterAnimation"
-                        ) { animatedCount ->
-                            // Внутри лямбды обязательно используем именно аргумент анимированного состояния (animatedCount)
-                            Text(
-                                text = "$animatedCount",
-                                fontSize = 20.sp
-                            )
-                        }
-                    }
-                }
-
- */
-
-/*
-
-Card(
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .fillMaxWidth(0.85f),
-                    shape = MaterialTheme.shapes.medium,
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainer
-                    ),
-                    elevation = CardDefaults.cardElevation(
-                        defaultElevation = 2.dp
-                    ),
-                    onClick = { coroutineScope.launch{listState.animateScrollToItem(index = 199)} },
-                ){
-                    Text(
-                        text = "Вниз",
-                        fontSize = 20.sp,
-                        modifier = Modifier.padding(16.dp).align(Alignment.CenterHorizontally)
-                    )
-                }
-
- */

@@ -26,7 +26,7 @@ fun Card(
             containerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
+            defaultElevation = 4.dp
         ),
         onClick = onClick
     ) {
@@ -41,10 +41,3 @@ fun Card(
 }
 
 
-/*
-Text(
-text = text,
-fontSize = 20.sp
-)
-
-*/
