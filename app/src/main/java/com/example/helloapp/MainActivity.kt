@@ -12,6 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import com.example.helloapp.features.counter.MainScreen
+import com.example.helloapp.features.sandbox.SandboxScreen
 import com.example.helloapp.ui.theme.HelloAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -40,6 +42,7 @@ class MainActivity : ComponentActivity() {
                     color = Color.Transparent // Делаем сам цвет прозрачным, чтобы был виден модификатор градиента
                 ) {
                     MainScreen()
+                    SandboxScreen()
                 }
             }
         }
