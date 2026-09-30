@@ -9,10 +9,10 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -22,8 +22,7 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
 @Composable
@@ -51,59 +50,40 @@ fun MainScreen() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
-                Card(
-                    content = {
-                        Text(
-                            text = "Вниз",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.W400)},
-                    onClick = {coroutineScope.launch{
-                        listState.scrollToItem(index = 199)
-                    }
+                MyCard(
+                    content = { CardText(text = "Вниз") },
+                    onClick = {
+                        coroutineScope.launch{
+                            listState.scrollToItem(index = 199)
+                        }
                     }
                 )
             }
             items(count = 200, key = { index -> "card_$index" }) {index ->
-                Card(
+                MyCard(
                     content = {
-                        Text(
-                            text = "Clicks: $index: ",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.W400,
-                        )
+                        CardText(text = "Clicks: $index: ")
                         AnimatedContent(
                             targetState = counts[index],
+                            modifier = Modifier.widthIn(min = 40.dp),
                             transitionSpec = {
                                 (slideInVertically { height -> -height } + fadeIn()) togetherWith
                                         slideOutVertically { height -> height } + fadeOut()
                             },
                             label = "CounterAnimation"
-                        ) { animatedCount ->
-                            Text(
-                                text = "$animatedCount",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.W500,
-                            )
-                        }
+                        ) { animatedCount -> CardText(text = "$animatedCount") }
                     },
                     onClick = {counts[index] += 1}
                 )
 
             }
             item {
-                Card(
-                    content = {
-                        Text(
-                            text = "Вверх",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.W500
-                        )
-                    },
+                MyCard(
+                    content = { CardText(text = "Вверх") },
                     onClick = {coroutineScope.launch{listState.scrollToItem(index = 0)}}
                 )
             }
         }
-
     }
 }
 
