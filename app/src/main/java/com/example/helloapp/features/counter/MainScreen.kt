@@ -39,7 +39,7 @@ fun MainScreen(
             item {
                 MyCard(
                     content = { CardText(text = "Вниз") },
-                    onClick = { coroutineScope.launch { listState.scrollToItem(index = 199) } }
+                    onClick = { coroutineScope.launch { listState.scrollToItem(index = 299) } }
                 )
             }
 
@@ -64,57 +64,3 @@ fun MainScreen(
         }
     }
 }
-
-/*
-
-@Composable
-fun MainScreen() {
-    Scaffold(
-        containerColor = Color.Transparent
-    ) { innerPadding ->
-        val counts = rememberSaveable(saver = listSaver(
-            save = { it.toList() },
-            restore = { it.toMutableStateList() })) {
-            mutableStateListOf(*Array(300) { 0 })
-        }
-
-        val listState = rememberLazyListState()
-        val coroutineScope = rememberCoroutineScope()
-
-
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.padding(innerPadding).fillMaxSize(),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            item {
-                MyCard(content = { CardText(text = "Вниз") }, onClick = {
-                    coroutineScope.launch {
-                        listState.scrollToItem(index = 199)
-                    }
-                })
-            }
-            items(count = 200, key = { index -> "card_$index" }) { index ->
-                MyCard(content = {
-                    CardText(text = "Clicks: $index: ")
-                    AnimatedContent(
-                        targetState = counts[index],
-                        modifier = Modifier.widthIn(min = 40.dp),
-                        transitionSpec = {
-                            (slideInVertically { height -> -height } + fadeIn()) togetherWith slideOutVertically { height -> height } + fadeOut()
-                        },
-                        label = "CounterAnimation"
-                    ) { animatedCount -> CardText(text = "$animatedCount") }
-                }, onClick = { counts[index] += 1 })
-
-            }
-            item {
-                MyCard(
-                    content = { CardText(text = "Вверх") },
-                    onClick = { coroutineScope.launch { listState.scrollToItem(index = 0) } })
-            }
-        }
-    }
-}
- */

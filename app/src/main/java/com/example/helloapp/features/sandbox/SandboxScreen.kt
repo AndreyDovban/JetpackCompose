@@ -6,10 +6,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import com.example.helloapp.ui.components.CardText
 import com.example.helloapp.ui.components.MyCard
 
@@ -22,13 +23,14 @@ fun SandboxScreen() {
          Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize()
-                .padding(16.dp),
+                .fillMaxSize(),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+             val message = remember{mutableStateOf("Hello METANIT.COM")}
              MyCard(
-                 content = { CardText(text = "Добро пожаловать в Песочницу!") }
+                 content = { CardText(text = message.value) },
+                 onClick = { message.value = "Hello Work!" }
              )
 
         }
