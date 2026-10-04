@@ -18,8 +18,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun CardText(
-    text: String,
-    modifier: Modifier = Modifier
+    text: String, modifier: Modifier = Modifier
 ) {
     Text(
         text = text, style = MaterialTheme.typography.bodyLarge, modifier = modifier
@@ -36,8 +35,7 @@ fun MyCard(
 
     Card(
         modifier = modifier
-            .padding(10.dp)
-            .fillMaxWidth(0.85f)
+            .fillMaxWidth()
             .clip(cardShape)
             .then(
                 if (onClick != null) Modifier.clickable(onClick = onClick)
@@ -52,7 +50,9 @@ fun MyCard(
         ),
     ) {
         Row(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
             content = content
