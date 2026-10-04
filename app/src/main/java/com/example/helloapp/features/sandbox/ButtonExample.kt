@@ -10,7 +10,7 @@ fun ButtonExample(
 
 ){
     MyButton(
-        onClick = { Log.d("MY_TAG", "Кнопка была нажата!") },
-        content = { Text("Click" ) }
-)
+        content = { Text("Click" ) },
+        onClick = { Log.d("MY_TAG", "Кнопка была нажата!") }
+    )
 }

@@ -26,6 +26,7 @@ fun SandboxScreen() {
              RememberExample()
              AnnotatedStringExample()
              ButtonExample()
+             TextFieldExample()
 
         }
     }
