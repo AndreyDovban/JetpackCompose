@@ -28,6 +28,7 @@ fun SandboxScreen() {
              ButtonExample()
              TextFieldExample()
              ToggleExample()
+             IconButtonExample()
 
         }
     }
