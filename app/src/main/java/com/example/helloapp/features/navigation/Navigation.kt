@@ -21,22 +21,49 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.helloapp.features.counter.MainScreen
+import com.example.helloapp.features.profile.ProfileScreen
+import com.example.helloapp.features.profile.ProfileUiEvent
+import com.example.helloapp.features.profile.ProfileViewModel
 import com.example.helloapp.features.sandbox.SandboxScreen
 
 @Composable
 fun Navigation(
-    navViewModel: NavigationViewModel = viewModel()
+    navViewModel: NavigationViewModel = viewModel(),
+    profileViewModel: ProfileViewModel = viewModel()
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // ЖЕЛЕЗНОЕ ПРАВИЛО: Слушаем поток событий. Пришел выстрел — показали.
+    // Никаких сохранений строк в стейт навигации!
+    LaunchedEffect(profileViewModel.uiEvents) {
+        profileViewModel.uiEvents.collect { event ->
+            when (event) {
+                is ProfileUiEvent.ShowSnackbar -> {
+                    snackbarHostState.showSnackbar(
+                        message = event.message,
+                        withDismissAction = event.hasDismissAction
+                    )
+                }
+            }
+        }
+    }
+
     Scaffold(
-        containerColor = Color.Transparent, topBar = {
+        containerColor = Color.Transparent,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        topBar = {
             TopAppBar(
                 title = { },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
@@ -81,7 +108,7 @@ fun Navigation(
             when (screen) {
                 Screen.Main -> MainScreen()
                 Screen.Sandbox -> SandboxScreen()
-                Screen.Profile -> SandboxScreen()
+                Screen.Profile -> ProfileScreen()
             }
         }
     }
