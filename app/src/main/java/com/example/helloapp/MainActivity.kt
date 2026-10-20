@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import com.example.helloapp.features.navigation.Navigation
+import com.example.helloapp.applayout.AppLayout
 import com.example.helloapp.ui.theme.HelloAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -45,7 +45,7 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize(),
                     color = Color.Transparent
                 ) {
-                    Navigation()
+                    AppLayout()
                 }
             }
         }

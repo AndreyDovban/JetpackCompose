@@ -14,13 +14,20 @@ import com.example.helloapp.ui.components.MyButton
 
 @Composable
 fun ProfileScreen(
-    viewModel: ProfileViewModel = viewModel()
+    onProfileSaved: (String) -> Unit, viewModel: ProfileViewModel = viewModel()
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        MyButton(onClick = { viewModel.saveProfileChanges() }) { Text(text = "Обновить профиль") }
+        MyButton(onClick = {
+            val isSuccess = viewModel.saveProfileChanges()
+            if (isSuccess) {
+                onProfileSaved("Данные профиля успешно сохранены!")
+            }
+        }) {
+            Text(text = "Сохранить профиль")
+        }
     }
 }
