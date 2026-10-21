@@ -24,6 +24,21 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // --- ИНИЦИАЛИЗАЦИЯ GO ЛОГГЕРА ---
+        try {
+            // Создаем логгер через лямбда-выражение
+            val goLogger = tunnel.Logger { msg ->
+                android.util.Log.d("GO_CORE", "[Go-Engine]: $msg")
+            }
+            // Передаем наш логгер в глобальную переменную Go-пакета
+            tunnel.Tunnel.setLogger(goLogger)
+            android.util.Log.d("GO_CORE", "Логгер для Go успешно зарегистрирован")
+        } catch (e: Exception) {
+            android.util.Log.e("GO_CORE", "Не удалось инициализировать Go логгер", e)
+        }
+        // ---------------------------------
+
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
             window.isNavigationBarContrastEnforced = false
         }
