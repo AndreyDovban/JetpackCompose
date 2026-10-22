@@ -1,21 +1,23 @@
 package com.example.helloapp.features.tunnel
 
 import android.app.Application
-import android.util.Log // Импортируем стандартный логгер Android
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.helloapp.data.ConfigRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.io.IOException
 
 // Описываем возможные состояния туннеля
 sealed interface TunnelState {
-    object Disconnected : TunnelState
-    object Connecting : TunnelState
-    object Connected : TunnelState
+    data object Disconnected : TunnelState
+    data object Connecting : TunnelState
+    data object Connected : TunnelState
+
+    data class Error(val message: String) : TunnelState
 }
 
 
@@ -23,25 +25,18 @@ class TunnelViewModel(application: Application) : AndroidViewModel(application) 
 
     // Внутреннее состояние (реактивное)
     private val _status = MutableStateFlow<TunnelState>(TunnelState.Disconnected)
+
     // Открытое состояние для чтения в Compose-экране
     val status: StateFlow<TunnelState> = _status.asStateFlow()
 
-    private fun readConfigFromAssets(): String? {
-        return try {
-            val context = getApplication<Application>()
-            context.assets.open("config.json").bufferedReader().use { it.readText() }
-        } catch (e: IOException) {
-            e.printStackTrace()
-            null
-        }
-    }
+    // Репозиторий для сохраниения настроек подключения
+    private val configRepository = ConfigRepository(application)
 
     fun toggleTunnel() {
-        // Если уже подключены — выключаем туннель
+        // Если уже есть подключение — выключаем туннель
         if (_status.value is TunnelState.Connected) {
             viewModelScope.launch(Dispatchers.IO) {
                 try {
-                    tunnel.Tunnel.stopTunnel() // Дергаем остановку в Go
                     _status.value = TunnelState.Disconnected
                     Log.d("GO_TUNNEL", "Туннель остановлен пользователем")
                 } catch (e: Exception) {
@@ -51,10 +46,15 @@ class TunnelViewModel(application: Application) : AndroidViewModel(application) 
             return
         }
 
-        // Иначе — запускаем подключение
-        val configJson = readConfigFromAssets() ?: return
+        val configJson = configRepository.getJsonConfig()
 
-        // Переводим UI в состояние "Подключение..."
+        // Ранний выход при отсутствии настроек подключения
+        if (configJson == null) {
+            _status.value = TunnelState.Error("Конфигурация не найдена. Заполните настройки!")
+            return
+        }
+
+        // Состояние "Подключение..."
         _status.value = TunnelState.Connecting
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -63,15 +63,17 @@ class TunnelViewModel(application: Application) : AndroidViewModel(application) 
                 Log.d("GO_TUNNEL", "Результат запуска из Go: $result")
 
                 if (result == "Туннель успешно запущен") {
-                    // Успех! Переключаем интерфейс в режим работы
+                    // Успех! Интерфейс в режиме работы
                     _status.value = TunnelState.Connected
                 } else {
                     // Что-то пошло не так (ошибка портов, неверный json)
-                    _status.value = TunnelState.Disconnected
+                    _status.value = TunnelState.Error("Что-то пошло не так")
+                    Log.e("GO_TUNNEL", "Что-то пошло не так")
                 }
             } catch (e: Exception) {
-                Log.e("GO_TUNNEL", "Ошибка при вызове Go-кода", e)
-                _status.value = TunnelState.Disconnected
+                val errorMessage = e.localizedMessage ?: "Критическая ошибка сети"
+                _status.value = TunnelState.Error(errorMessage)
+                Log.e("GO_TUNNEL", "Исключение при вызове Go-кода", e)
             }
         }
     }

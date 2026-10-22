@@ -9,7 +9,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
-// Глобальные события для всего приложения (например, показ Снабара)
+// Глобальные события для всего приложения
 sealed interface AppUiEvent {
     data class ShowSnackbar(val message: String, val hasDismissAction: Boolean = true) : AppUiEvent
 }

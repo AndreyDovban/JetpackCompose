@@ -33,8 +33,7 @@ fun AppLayout(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // ЖЕЛЕЗНОЕ ПРАВИЛО: Слушаем поток событий. Пришел выстрел — показали.
-    // Никаких сохранений строк в стейт навигации!
+    // Прослушивание событий
     LaunchedEffect(navViewModel.uiEvents) {
         navViewModel.uiEvents.collect { event ->
             when (event) {
@@ -63,12 +62,12 @@ fun AppLayout(
                             tint = if (navViewModel.currentScreen == Screen.Main) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
                         )
                     }
-                    IconButton(onClick = { navViewModel.navigateTo(Screen.Sandbox) }) {
+                    IconButton(onClick = { navViewModel.navigateTo(Screen.Settings) }) {
                         Icon(
                             Icons.Filled.Settings,
                             contentDescription = "Песочница",
                             modifier = Modifier.size(48.dp),
-                            tint = if (navViewModel.currentScreen == Screen.Sandbox) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                            tint = if (navViewModel.currentScreen == Screen.Settings) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
                         )
                     }
                     IconButton(onClick = { navViewModel.navigateTo(Screen.Profile) }) {

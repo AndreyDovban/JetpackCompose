@@ -20,18 +20,16 @@ import com.example.helloapp.ui.components.MyButton
 fun TunnelScreen(
     onStartTunnel: (String) -> Unit, viewModel: TunnelViewModel = viewModel()
 ) {
-    // Подписываемся на состояние туннеля из ViewModel
+    // Подписка на состояние туннеля из ViewModel
     val currentStatus by viewModel.status.collectAsState()
 
-    // Следим за состоянием. Как только оно изменится на Connected, выскочит уведомление
+    // Отслеживание сосстояния для отправки уведомления
     LaunchedEffect(currentStatus) {
         when (currentStatus) {
-            is TunnelState.Connected -> onStartTunnel("Туннель успешно запущен!")
-            is TunnelState.Disconnected -> {
-                // Можно раскомментировать, если хотите уведомление и при отключении:
-                // onStartTunnel("Туннель остановлен")
-            }
-            else -> {}
+            TunnelState.Connected -> onStartTunnel("Туннель успешно запущен!")
+            TunnelState.Disconnected -> {}
+            TunnelState.Connecting -> {}
+            is TunnelState.Error -> onStartTunnel("Ошибка: ${(currentStatus as TunnelState.Error).message}")
         }
     }
 
@@ -40,34 +38,43 @@ fun TunnelScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 1. Вычисляем текст кнопки на основе состояния
+        // 1. Етекст кнопки на основе состояния
         val buttonText = when (currentStatus) {
-            is TunnelState.Disconnected -> "Подключиться"
-            is TunnelState.Connecting -> "Подключение..."
-            is TunnelState.Connected -> "Отключить туннель"
+            TunnelState.Disconnected -> "Подключиться"
+            TunnelState.Connecting -> "Подключение..."
+            TunnelState.Connected -> "Отключить туннель"
+            is TunnelState.Error -> "Подключиться"
         }
 
-        // 2. Вычисляем цвета кнопки на основе состояния (адаптивные под тему)
+        // 2. Цвета кнопки на основе состояния (адаптивные под тему)
         val buttonColors = when (currentStatus) {
-            is TunnelState.Disconnected -> ButtonDefaults.buttonColors(
+            TunnelState.Disconnected -> ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             )
-            is TunnelState.Connecting -> ButtonDefaults.buttonColors(
+
+            TunnelState.Connecting -> ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer
             )
-            is TunnelState.Connected -> ButtonDefaults.buttonColors(
+
+            TunnelState.Connected -> ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.errorContainer,
                 contentColor = MaterialTheme.colorScheme.onErrorContainer
+            )
+
+            is TunnelState.Error -> ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             )
         }
 
         // Информативный статус под кнопкой
         val statusText = when (currentStatus) {
-            is TunnelState.Disconnected -> "Статус: Отключено"
-            is TunnelState.Connecting -> "Статус: Проверка конфигурации и SSH..."
-            is TunnelState.Connected -> "Статус: Подключено (Локальный прокси: 127.0.0.1:9090)"
+            TunnelState.Disconnected -> "Статус: Отключено"
+            TunnelState.Connecting -> "Статус: Проверка конфигурации и SSH..."
+            TunnelState.Connected -> "Статус: Подключено (Локальный прокси: 127.0.0.1:9090)"
+            is TunnelState.Error -> "Статус: Сбой подключения"
         }
 
         Text(
@@ -76,17 +83,16 @@ fun TunnelScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        // Вызываем вашу обновленную кнопку
         MyButton(
-            onClick = { viewModel.toggleTunnel() },
-            colors = buttonColors
+            onClick = {
+                if (currentStatus != TunnelState.Connecting) {
+                    viewModel.toggleTunnel()
+                }
+            }, colors = buttonColors
         ) {
             Text(
-                text = buttonText,
-                style = MaterialTheme.typography.labelLarge
+                text = buttonText, style = MaterialTheme.typography.labelLarge
             )
         }
-
-
     }
 }

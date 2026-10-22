@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.helloapp.features.tunnel.TunnelScreen
 import com.example.helloapp.features.profile.ProfileScreen
-import com.example.helloapp.features.sandbox.SandboxScreen
+import com.example.helloapp.features.settings.SettingsScreen
 
 @Composable
 fun AppNavGraph(
@@ -46,7 +46,9 @@ fun AppNavGraph(
             Screen.Main -> TunnelScreen(
                 onStartTunnel = { message -> onShowSnackbar(message) }
             )
-            Screen.Sandbox -> SandboxScreen()
+            Screen.Settings -> SettingsScreen(
+                onConfigSaved = { message -> onShowSnackbar(message) }
+            )
             Screen.Profile -> ProfileScreen(
                 onProfileSaved = { message -> onShowSnackbar(message) }
             )

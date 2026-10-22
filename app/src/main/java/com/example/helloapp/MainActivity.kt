@@ -27,11 +27,11 @@ class MainActivity : ComponentActivity() {
 
         // --- ИНИЦИАЛИЗАЦИЯ GO ЛОГГЕРА ---
         try {
-            // Создаем логгер через лямбда-выражение
+            // Создание логгера через лямбда-выражение
             val goLogger = tunnel.Logger { msg ->
                 android.util.Log.d("GO_CORE", "[Go-Engine]: $msg")
             }
-            // Передаем наш логгер в глобальную переменную Go-пакета
+            // Передача логгера в глобальную переменную Go-пакета
             tunnel.Tunnel.setLogger(goLogger)
             android.util.Log.d("GO_CORE", "Логгер для Go успешно зарегистрирован")
         } catch (e: Exception) {
