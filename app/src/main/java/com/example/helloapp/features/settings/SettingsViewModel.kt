@@ -41,31 +41,22 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val savedJson = configRepository.getJsonConfig()
 
             if (savedJson != null) {
-                // Парсинг JSON стандартным Android-пасером
                 val jsonObject = JSONObject(savedJson)
 
-                // Извлечение адреса сервера и разделение его на IP и Порт
-                // На стороне Go они "${config.serverIp}:${config.serverPort}"
                 val serverAddress = jsonObject.optString("server_address", "")
                 val ipAndPort = serverAddress.split(":")
+                val ip = ipAndPort.getOrNull(0) ?: "" // Возвращаем пустую строку, если нет значения
+                val port = ipAndPort.getOrNull(1) ?: ""
 
-                val ip = ipAndPort.getOrNull(0) ?: "147.45.70.252"
-                val port = ipAndPort.getOrNull(1) ?: "39221"
-
-                // Извлечение полей, сопоставляя с ключами из generateJsonString() Go-ядра
                 val user = jsonObject.optString("ssh_user", "root")
-
-                // Возвращение экранированныч переносов строк приватного ключа обратно в нормальный вид
+                // Читаем ключ, заменяя экранированные переносы обратно на реальные \n для отображения в TextField
                 val key = jsonObject.optString("key_text", "").replace("\\n", "\n")
 
-                // Извлекение локальный порт прокси
                 val localProxyAddress =
                     jsonObject.optString("local_proxy_address", "127.0.0.1:9090")
                 val proxyPort = localProxyAddress.split(":").getOrNull(1) ?: "9090"
-
                 val aliveInterval = jsonObject.optInt("server_alive_interval", 15)
 
-                // Обновление состояние UI
                 _uiState.update {
                     it.copy(
                         serverIp = ip,
@@ -166,15 +157,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         val config = _uiState.value
         val fullServerAddress = "${config.serverIp}:${config.serverPort}"
 
-        return """
-            {
-                "server_address": "$fullServerAddress",
-                "ssh_user": "${config.sshUser}",
-                "key_text": "${config.keyText.replace("\n", "\\n")}",
-                "local_proxy_address": "127.0.0.1:${config.localProxyPort}",
-                "server_alive_interval": ${config.serverAliveInterval}
-            }
-        """.trimIndent()
+        return JSONObject().apply {
+            put("server_address", fullServerAddress)
+            put("ssh_user", config.sshUser)
+            // JSONObject сам правильно экранирует любые символы вроде \n и кавычки
+            put("key_text", config.keyText)
+            put("local_proxy_address", "127.0.0.1:${config.localProxyPort}")
+            put("server_alive_interval", config.serverAliveInterval)
+        }.toString()
     }
 
     fun saveConfig() {

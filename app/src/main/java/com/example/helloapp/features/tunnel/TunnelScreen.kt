@@ -24,12 +24,9 @@ fun TunnelScreen(
     val currentStatus by viewModel.status.collectAsState()
 
     // Отслеживание сосстояния для отправки уведомления
-    LaunchedEffect(currentStatus) {
-        when (currentStatus) {
-            TunnelState.Connected -> onStartTunnel("Туннель успешно запущен!")
-            TunnelState.Disconnected -> {}
-            TunnelState.Connecting -> {}
-            is TunnelState.Error -> onStartTunnel("Ошибка: ${(currentStatus as TunnelState.Error).message}")
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { message ->
+            onStartTunnel(message)
         }
     }
 
@@ -73,7 +70,7 @@ fun TunnelScreen(
         val statusText = when (currentStatus) {
             TunnelState.Disconnected -> "Статус: Отключено"
             TunnelState.Connecting -> "Статус: Проверка конфигурации и SSH..."
-            TunnelState.Connected -> "Статус: Подключено (Локальный прокси: 127.0.0.1:9090)"
+            TunnelState.Connected -> "Статус: Подключено"
             is TunnelState.Error -> "Статус: Сбой подключения"
         }
 
