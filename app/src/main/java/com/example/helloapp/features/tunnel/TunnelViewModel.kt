@@ -1,19 +1,20 @@
 package com.example.helloapp.features.tunnel
 
+import android.annotation.SuppressLint
 import android.app.Application
-import android.util.Log
+import android.content.Intent
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.helloapp.data.ConfigRepository
+import com.example.helloapp.services.TunnelService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
-// Описываем возможные состояния туннеля
+// Состояния экрана
 sealed interface TunnelState {
     data object Disconnected : TunnelState
     data object Connecting : TunnelState
@@ -21,74 +22,56 @@ sealed interface TunnelState {
     data class Error(val message: String) : TunnelState
 }
 
-
 class TunnelViewModel(application: Application) : AndroidViewModel(application) {
 
-    // Состояние подключения к туннелю
-    private val _status = MutableStateFlow<TunnelState>(TunnelState.Disconnected)
-    val status: StateFlow<TunnelState> = _status.asStateFlow()
+    // Глобальное состояние из companion object Сервиса
+    val status: StateFlow<TunnelState> = TunnelService.serviceStatus
 
-    // Канал для одноразовых UI-событий (Snackbar, алерты)
+    // Канал для отправки уведомлений
     private val _events = Channel<String>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
 
-    // Репозиторий для сохраниения настроек подключения
+    // Репозиторий
     private val configRepository = ConfigRepository(application)
 
-    init {
-        // Передаем коллбэк в Go-ядро в виде компактной лямбды
-        tunnel.Tunnel.setStatusListener { reason ->
-            viewModelScope.launch(Dispatchers.Main) {
-                _status.value = TunnelState.Error("Соединение разорвано: $reason")
-                _events.send("Внимание: Связь с сервером потеряна!")
-            }
-        }
-    }
+    // Конетекст приложения
+    @SuppressLint("StaticFieldLeak")
+    private val context = application.applicationContext
 
     fun toggleTunnel() {
-        // Если уже есть подключение — выключаем туннель
-        if (_status.value is TunnelState.Connected) {
-            viewModelScope.launch(Dispatchers.IO) {
-                try {
-                    tunnel.Tunnel.stopTunnel()
-                    _status.value = TunnelState.Disconnected
-                    Log.d("GO_TUNNEL", "Туннель остановлен пользователем")
-                } catch (e: Exception) {
-                    Log.e("GO_TUNNEL", "Ошибка при остановке", e)
-                }
+        val currentStatus = status.value
+
+        // 1. Если туннель запущен — отправляется на остановку службы
+        if (currentStatus is TunnelState.Connected) {
+            val stopIntent = Intent(context, TunnelService::class.java).apply {
+                action = TunnelService.ACTION_STOP
             }
+            context.startService(stopIntent)
             return
         }
 
-        // Запуск туннеля
-        _status.value = TunnelState.Connecting
-
+        // 2. Если туннель отключен (или в ошибке) — начинается запуск службы
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val configJson = configRepository.getJsonConfig()
 
                 if (configJson == null) {
-                    _status.value =
-                        TunnelState.Error("Конфигурация не найдена. Проверьте настройки!")
-                    _events.send("Ошибка: Конфигурация не найдена!")
+                    _events.send("Ошибка: Сначала заполните настройки!")
                     return@launch
                 }
 
-                val result = tunnel.Tunnel.startTunnel(configJson)
-                Log.d("GO_TUNNEL", "Результат запуска из Go: $result")
-
-                if (result == "Туннель успешно запущен") {
-                    _status.value = TunnelState.Connected
-                    _events.send("Туннель успешно запущен!")
-                } else {
-                    _status.value = TunnelState.Error("Что-то пошло не так")
-                    _events.send("Ошибка запуска туннеля")
+                val startIntent = Intent(context, TunnelService::class.java).apply {
+                    action = TunnelService.ACTION_START
+                    putExtra(TunnelService.EXTRA_CONFIG_JSON, configJson)
                 }
+
+                // Отправка команда запуска Foreground-службы в систему Android
+                ContextCompat.startForegroundService(context, startIntent)
+                _events.send("Команда на запуск туннеля отправлена!")
+
             } catch (e: Exception) {
-                val errorMessage = e.localizedMessage ?: "Неизвестная ошибка ядра"
-                _status.value = TunnelState.Error(errorMessage)
+                val errorMessage = e.localizedMessage ?: "Сбой отправки команды"
                 _events.send("Ошибка: $errorMessage")
-                Log.e("GO_TUNNEL", "Исключение при работе Go-ядра", e)
             }
         }
     }

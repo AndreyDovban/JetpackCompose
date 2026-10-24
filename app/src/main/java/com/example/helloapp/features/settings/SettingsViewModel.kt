@@ -45,11 +45,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
                 val serverAddress = jsonObject.optString("server_address", "")
                 val ipAndPort = serverAddress.split(":")
-                val ip = ipAndPort.getOrNull(0) ?: "" // Возвращаем пустую строку, если нет значения
+                val ip = ipAndPort.getOrNull(0) ?: "" // Возвращается пустастрока, если нет значения
                 val port = ipAndPort.getOrNull(1) ?: ""
 
                 val user = jsonObject.optString("ssh_user", "root")
-                // Читаем ключ, заменяя экранированные переносы обратно на реальные \n для отображения в TextField
+                // Читение ключа, заменяя экранированные переносы обратно на реальные \n для отображения в TextField
                 val key = jsonObject.optString("key_text", "").replace("\\n", "\n")
 
                 val localProxyAddress =

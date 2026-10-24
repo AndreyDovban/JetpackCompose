@@ -48,7 +48,7 @@ class ConfigRepository(private val context: Context) {
     }
 
     /**
-     * Шифрует и сохраняет JSON-строку конфигурации.
+     * Шифрует и сохраняет JSON-строку конфигурации
      */
     fun saveJsonConfig(jsonString: String) {
         try {
